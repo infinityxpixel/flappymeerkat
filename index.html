@@ -1,363 +1,426 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Plus, 
-  Trash2, 
-  Printer, 
-  Mail, 
-  MapPin, 
-  FileText
-} from 'lucide-react';
-
-const App = () => {
-  // Initialize state with default values
-  const [invoiceData, setInvoiceData] = useState({
-    invoiceNumber: 'INV-' + Math.floor(1000 + Math.random() * 9000),
-    date: new Date().toISOString().split('T')[0],
-    dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    sender: {
-      name: 'Your Company Name',
-      email: 'hello@company.com',
-      address: '123 Business Ave, Suite 100\nNew York, NY 10001',
-      phone: '+1 (555) 000-0000',
-      website: 'www.yourcompany.com'
-    },
-    client: {
-      name: '',
-      email: '',
-      address: '',
-      phone: ''
-    },
-    items: [
-      { id: 1, description: 'Consulting Services', quantity: 1, price: 150 }
-    ],
-    taxRate: 10,
-    notes: 'Thank you for your business! Payment is due within 14 days.',
-    currency: '$',
-    themeColor: '#4f46e5'
-  });
-
-  // Calculate totals based on current items and tax rate
-  const subtotal = invoiceData.items.reduce((acc, item) => acc + (item.quantity * item.price), 0);
-  const taxAmount = (subtotal * invoiceData.taxRate) / 100;
-  const total = subtotal + taxAmount;
-
-  // Generic handler for nested object updates
-  const handleUpdate = (path, value) => {
-    const keys = path.split('.');
-    if (keys.length === 2) {
-      setInvoiceData(prev => ({
-        ...prev,
-        [keys[0]]: { ...prev[keys[0]], [keys[1]]: value }
-      }));
-    } else {
-      setInvoiceData(prev => ({ ...prev, [path]: value }));
-    }
-  };
-
-  const addItem = () => {
-    const newItem = { id: Date.now(), description: '', quantity: 1, price: 0 };
-    setInvoiceData(prev => ({
-      ...prev,
-      items: [...prev.items, newItem]
-    }));
-  };
-
-  const updateItem = (id, field, value) => {
-    setInvoiceData(prev => ({
-      ...prev,
-      items: prev.items.map(item => 
-        item.id === id ? { ...item, [field]: field === 'description' ? value : Number(value) } : item
-      )
-    }));
-  };
-
-  const removeItem = (id) => {
-    if (invoiceData.items.length === 1) return; // Keep at least one item
-    setInvoiceData(prev => ({
-      ...prev,
-      items: prev.items.filter(item => item.id !== id)
-    }));
-  };
-
-  const handlePrint = () => {
-    window.print();
-  };
-
-  return (
-    <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8 font-sans print:p-0 print:bg-white">
-      {/* Control Panel (Hidden on Print) */}
-      <div className="max-w-4xl mx-auto mb-8 flex flex-wrap items-center justify-between gap-4 print:hidden">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg text-white" style={{ backgroundColor: invoiceData.themeColor }}>
-            <FileText size={24} />
-          </div>
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Invoice Pro</h1>
-        </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Flappy Meerkat Deluxe</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap');
         
-        <div className="flex gap-3">
-          <div className="flex items-center gap-2 mr-4 bg-white px-3 py-1.5 rounded-lg border border-slate-200">
-            <span className="text-xs font-semibold text-slate-400 uppercase">Theme</span>
-            <input 
-              type="color" 
-              value={invoiceData.themeColor} 
-              onChange={(e) => handleUpdate('themeColor', e.target.value)}
-              className="w-6 h-6 rounded cursor-pointer border-none p-0 bg-transparent"
-            />
-          </div>
-          <button 
-            onClick={handlePrint}
-            className="flex items-center gap-2 px-6 py-2.5 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-all shadow-lg font-medium"
-          >
-            <Printer size={18} />
-            Print / Save as PDF
-          </button>
-        </div>
-      </div>
-
-      {/* Main Invoice Sheet */}
-      <div className="max-w-4xl mx-auto bg-white shadow-2xl rounded-2xl overflow-hidden print:shadow-none print:rounded-none">
-        {/* Top Accent Bar */}
-        <div style={{ backgroundColor: invoiceData.themeColor }} className="h-2 w-full"></div>
-
-        {/* Header Section */}
-        <div className="p-8 sm:p-12 border-b border-slate-100 flex flex-col md:flex-row justify-between gap-8 bg-gradient-to-br from-white to-slate-50">
-          <div className="space-y-4 max-w-sm">
-            <input 
-              type="text" 
-              value={invoiceData.sender.name}
-              onChange={(e) => handleUpdate('sender.name', e.target.value)}
-              className="text-3xl font-bold text-slate-900 border-none p-0 w-full focus:ring-0 placeholder:text-slate-300 bg-transparent"
-              placeholder="Your Company Name"
-            />
-            <div className="space-y-2 text-slate-500 text-sm">
-              <div className="flex items-center gap-2">
-                <Mail size={14} style={{ color: invoiceData.themeColor }} className="shrink-0" />
-                <input 
-                  type="email" 
-                  value={invoiceData.sender.email}
-                  onChange={(e) => handleUpdate('sender.email', e.target.value)}
-                  className="border-none p-0 focus:ring-0 w-full bg-transparent"
-                  placeholder="email@address.com"
-                />
-              </div>
-              <div className="flex items-start gap-2">
-                <MapPin size={14} style={{ color: invoiceData.themeColor }} className="mt-1 shrink-0" />
-                <textarea 
-                  value={invoiceData.sender.address}
-                  onChange={(e) => handleUpdate('sender.address', e.target.value)}
-                  rows="2"
-                  className="border-none p-0 focus:ring-0 w-full resize-none bg-transparent"
-                  placeholder="Address Line 1"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-col items-end gap-2 text-right">
-            <div className="px-4 py-2 rounded-lg inline-block mb-4" style={{ backgroundColor: `${invoiceData.themeColor}15` }}>
-              <h2 className="font-bold tracking-widest text-xs uppercase" style={{ color: invoiceData.themeColor }}>Invoice Number</h2>
-              <input 
-                type="text"
-                value={invoiceData.invoiceNumber}
-                onChange={(e) => handleUpdate('invoiceNumber', e.target.value)}
-                className="bg-transparent border-none p-0 text-right font-bold text-slate-800 focus:ring-0 w-32"
-              />
-            </div>
-            
-            <div className="space-y-1">
-              <div className="flex items-center justify-end gap-3 text-sm">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Date</span>
-                <input 
-                  type="date"
-                  value={invoiceData.date}
-                  onChange={(e) => handleUpdate('date', e.target.value)}
-                  className="border-none p-0 text-right text-slate-700 focus:ring-0 bg-transparent"
-                />
-              </div>
-              <div className="flex items-center justify-end gap-3 text-sm">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Due Date</span>
-                <input 
-                  type="date"
-                  value={invoiceData.dueDate}
-                  onChange={(e) => handleUpdate('dueDate', e.target.value)}
-                  className="border-none p-0 text-right text-slate-700 focus:ring-0 bg-transparent"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Client Info Section */}
-        <div className="px-8 sm:px-12 py-8 bg-white border-b border-slate-100">
-          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Bill To</h3>
-          <div className="space-y-2">
-            <input 
-              type="text"
-              value={invoiceData.client.name}
-              onChange={(e) => handleUpdate('client.name', e.target.value)}
-              placeholder="Client Name / Company"
-              className="block w-full text-lg font-semibold text-slate-800 border-none p-0 focus:ring-0 bg-transparent"
-            />
-            <div className="space-y-1 text-sm text-slate-600">
-               <input 
-                type="email"
-                value={invoiceData.client.email}
-                onChange={(e) => handleUpdate('client.email', e.target.value)}
-                placeholder="client@email.com"
-                className="block w-full border-none p-0 focus:ring-0 bg-transparent"
-              />
-              <textarea 
-                value={invoiceData.client.address}
-                onChange={(e) => handleUpdate('client.address', e.target.value)}
-                placeholder="Street Address, City, Country"
-                rows="2"
-                className="block w-full border-none p-0 focus:ring-0 resize-none bg-transparent"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Items Table */}
-        <div className="px-8 sm:px-12 py-8 min-h-[300px]">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="border-b border-slate-200">
-                <th className="py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-widest w-1/2">Description</th>
-                <th className="py-4 text-center text-xs font-bold text-slate-400 uppercase tracking-widest">Qty</th>
-                <th className="py-4 text-right text-xs font-bold text-slate-400 uppercase tracking-widest">Price</th>
-                <th className="py-4 text-right text-xs font-bold text-slate-400 uppercase tracking-widest">Total</th>
-                <th className="py-4 w-10 print:hidden"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {invoiceData.items.map((item) => (
-                <tr key={item.id} className="group">
-                  <td className="py-5 align-top">
-                    <input 
-                      type="text"
-                      value={item.description}
-                      onChange={(e) => updateItem(item.id, 'description', e.target.value)}
-                      placeholder="Service or Product name..."
-                      className="w-full font-medium text-slate-800 border-none p-0 focus:ring-0 bg-transparent"
-                    />
-                  </td>
-                  <td className="py-5 align-top text-center">
-                    <input 
-                      type="number"
-                      value={item.quantity}
-                      onChange={(e) => updateItem(item.id, 'quantity', e.target.value)}
-                      className="w-16 text-center text-slate-700 border-none p-0 focus:ring-0 bg-transparent"
-                    />
-                  </td>
-                  <td className="py-5 align-top text-right">
-                    <div className="flex items-center justify-end">
-                      <span className="text-slate-400 mr-1">{invoiceData.currency}</span>
-                      <input 
-                        type="number"
-                        value={item.price}
-                        onChange={(e) => updateItem(item.id, 'price', e.target.value)}
-                        className="w-24 text-right text-slate-700 border-none p-0 focus:ring-0 bg-transparent"
-                      />
-                    </div>
-                  </td>
-                  <td className="py-5 align-top text-right font-semibold text-slate-900">
-                    {invoiceData.currency}{(item.quantity * item.price).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                  </td>
-                  <td className="py-5 align-top text-right print:hidden">
-                    <button 
-                      onClick={() => removeItem(item.id)}
-                      className="text-slate-300 hover:text-rose-500 transition-colors opacity-0 group-hover:opacity-100 p-1"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          <button 
-            onClick={addItem}
-            style={{ color: invoiceData.themeColor }}
-            className="mt-6 flex items-center gap-2 font-bold text-sm hover:opacity-70 transition-colors print:hidden"
-          >
-            <Plus size={16} />
-            Add New Item
-          </button>
-        </div>
-
-        {/* Footer Summary Section */}
-        <div className="px-8 sm:px-12 py-12 bg-slate-50 flex flex-col md:flex-row justify-between gap-12 border-t border-slate-100">
-          <div className="max-w-md w-full">
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Notes & Instructions</h3>
-            <textarea 
-              value={invoiceData.notes}
-              onChange={(e) => handleUpdate('notes', e.target.value)}
-              rows="4"
-              className="w-full bg-white rounded-xl border border-slate-200 p-4 text-sm text-slate-600 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-300 transition-all resize-none shadow-sm print:border-none print:shadow-none print:p-0 print:bg-transparent"
-              placeholder="Terms or thank you message..."
-            />
-          </div>
-
-          <div className="w-full md:w-80 space-y-4">
-            <div className="flex justify-between items-center text-slate-600 text-sm">
-              <span>Subtotal</span>
-              <span className="font-medium">{invoiceData.currency}{subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-slate-600">Tax</span>
-                <div className="flex items-center print:hidden">
-                  <input 
-                    type="number"
-                    value={invoiceData.taxRate}
-                    onChange={(e) => handleUpdate('taxRate', Number(e.target.value))}
-                    className="w-12 bg-white border border-slate-200 rounded px-1 py-0.5 text-xs text-center"
-                  />
-                  <span className="text-xs ml-1 text-slate-400">%</span>
-                </div>
-                <span className="text-xs font-medium text-slate-400 hidden print:inline">({invoiceData.taxRate}%)</span>
-              </div>
-              <span className="font-medium text-slate-600 text-sm">{invoiceData.currency}{taxAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-            </div>
-            <div className="pt-4 border-t border-slate-200 flex justify-between items-center">
-              <span className="text-lg font-bold text-slate-900">Total Due</span>
-              <span className="text-2xl font-black" style={{ color: invoiceData.themeColor }}>
-                {invoiceData.currency}{total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Final Branding / Footer */}
-        <div className="p-8 text-center text-slate-400 text-[10px] uppercase tracking-widest border-t border-slate-100 print:mt-auto">
-          <p>© {new Date().getFullYear()} {invoiceData.sender.name || 'Your Company'}</p>
-        </div>
-      </div>
-
-      <style>
-        {`
-          @media print {
-            @page { margin: 15mm; size: a4; }
-            body { background: white !important; }
-            .print-hidden { display: none !important; }
-            input, textarea { background: transparent !important; border: none !important; outline: none !important; resize: none !important; }
-            /* Force background colors to print on static hosts */
-            div, span, table { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-          }
-          /* Remove number input arrows */
-          input::-webkit-outer-spin-button,
-          input::-webkit-inner-spin-button {
-            -webkit-appearance: none;
+        body {
             margin: 0;
-          }
-          input[type=number] {
-            -moz-appearance: textfield;
-          }
-        `}
-      </style>
-    </div>
-  );
-};
+            overflow: hidden;
+            background-color: #2c1e14;
+            font-family: 'Luckiest+Guy', cursive;
+            touch-action: manipulation;
+        }
 
-export default App;
+        canvas {
+            display: block;
+            margin: 0 auto;
+            background: linear-gradient(to bottom, #4facfe 0%, #00f2fe 100%);
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            cursor: pointer;
+        }
+
+        #ui-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            pointer-events: none;
+            width: 100%;
+            z-index: 20;
+        }
+
+        .btn {
+            pointer-events: auto;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.2);
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            filter: brightness(1.1);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+
+    <div id="game-container" class="relative overflow-hidden rounded-lg">
+        <canvas id="gameCanvas"></canvas>
+        
+        <div id="ui-overlay">
+            <!-- Start Screen -->
+            <div id="start-screen" class="flex flex-col items-center">
+                <div class="floating">
+                    <h1 class="text-6xl md:text-7xl text-white mb-2 drop-shadow-[0_5px_0px_rgba(180,83,9,1)]">FLAPPY</h1>
+                    <h1 class="text-6xl md:text-7xl text-orange-400 mb-8 drop-shadow-[0_5px_0px_rgba(120,53,15,1)]">MEERKAT</h1>
+                </div>
+                <p class="text-xl text-white/90 mb-8 bg-black/20 backdrop-blur-sm px-6 py-2 rounded-full border border-white/20">Tap, Click or Space to Fly</p>
+                <button onclick="startGame()" class="btn bg-gradient-to-b from-orange-400 to-orange-600 text-white text-4xl px-16 py-5 rounded-3xl shadow-[0_10px_0px_rgb(154,52,18)] border-2 border-orange-300">START</button>
+            </div>
+
+            <!-- Game Over Screen -->
+            <div id="game-over-screen" class="hidden flex flex-col items-center">
+                <h2 class="text-7xl text-white mb-6 drop-shadow-[0_5px_0px_rgba(220,38,38,1)]">OUCH!</h2>
+                <div class="bg-white/90 backdrop-blur-md p-8 rounded-3xl mb-8 shadow-2xl min-w-[280px] border-4 border-orange-200">
+                    <p class="text-xl text-amber-900/60 uppercase tracking-widest">Score</p>
+                    <p class="text-5xl text-amber-900 mb-4" id="final-score">0</p>
+                    <p class="text-xl text-amber-900/60 uppercase tracking-widest">Best</p>
+                    <p class="text-3xl text-orange-600" id="best-score">0</p>
+                </div>
+                <button onclick="startGame()" class="btn bg-gradient-to-b from-green-400 to-green-600 text-white text-3xl px-12 py-4 rounded-2xl shadow-[0_8px_0px_rgb(21,128,61)] border-2 border-green-300">PLAY AGAIN</button>
+            </div>
+        </div>
+
+        <!-- Live Score -->
+        <div id="score-display" class="hidden absolute top-12 left-0 w-full text-center pointer-events-none z-10">
+            <span class="text-7xl text-white drop-shadow-[0_6px_0px_rgba(0,0,0,0.3)] transition-transform duration-100 inline-block" id="current-score">0</span>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const startScreen = document.getElementById('start-screen');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const scoreDisplay = document.getElementById('score-display');
+        const currentScoreText = document.getElementById('current-score');
+        const finalScoreText = document.getElementById('final-score');
+        const bestScoreText = document.getElementById('best-score');
+
+        // Adjusted Constants for "Easier" Gameplay
+        const GRAVITY = 0.38;      // Slightly lighter
+        const JUMP = -7.5;         // Snappier jump
+        const PIPE_SPEED = 3.0;    // Slower movement
+        const PIPE_SPAWN_RATE = 110; 
+        const PIPE_WIDTH = 80;
+        const PIPE_GAP = 190;      // Wider gap
+
+        // Game State
+        let gameActive = false;
+        let score = 0;
+        let highScore = localStorage.getItem('meerkatHighScoreDeluxe') || 0;
+        let frameCount = 0;
+        let bgOffset = 0;
+        let midOffset = 0;
+
+        let meerkat = { 
+            x: 80, 
+            y: 0, 
+            velocity: 0, 
+            width: 40, 
+            height: 55, 
+            rotation: 0,
+            eyeSize: 0 // For blinking animation
+        };
+        
+        let pipes = [];
+        let particles = [];
+        let trail = [];
+
+        function resize() {
+            const h = Math.min(window.innerHeight, 850);
+            const w = Math.min(window.innerWidth, 480);
+            canvas.width = w;
+            canvas.height = h;
+            if(!gameActive) drawStaticScene();
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+
+        function drawMeerkat(ctx, x, y, rotation) {
+            ctx.save();
+            ctx.translate(x + 20, y + 27);
+            ctx.rotate(rotation);
+            
+            // Tail
+            ctx.strokeStyle = '#8B5E3C';
+            ctx.lineWidth = 6;
+            ctx.beginPath();
+            ctx.moveTo(-15, 20);
+            ctx.quadraticCurveTo(-25, 35, -20, 45);
+            ctx.stroke();
+
+            // Body
+            ctx.fillStyle = '#C19A6B';
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 18, 28, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#A67C52';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Belly
+            ctx.fillStyle = '#F5E6D3';
+            ctx.beginPath();
+            ctx.ellipse(0, 5, 11, 16, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Head
+            ctx.fillStyle = '#C19A6B';
+            ctx.beginPath();
+            ctx.arc(0, -22, 14, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            // Face details
+            const blink = Math.sin(frameCount * 0.1) > 0.98 ? 0.1 : 1;
+            ctx.fillStyle = '#3D2B1F';
+            // Eyes
+            ctx.beginPath();
+            ctx.ellipse(-6, -24, 4, 3 * blink, 0.2, 0, Math.PI * 2);
+            ctx.ellipse(6, -24, 4, 3 * blink, -0.2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Ears
+            ctx.fillStyle = '#3D2B1F';
+            ctx.beginPath();
+            ctx.arc(-11, -30, 4, 0, Math.PI * 2);
+            ctx.arc(11, -30, 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        function drawBackground() {
+            // Sky Gradient
+            const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            sky.addColorStop(0, '#4facfe');
+            sky.addColorStop(1, '#f3e5ab');
+            ctx.fillStyle = sky;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Sun
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.beginPath();
+            ctx.arc(canvas.width - 80, 80, 40, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Distant Dunes (Slow)
+            ctx.fillStyle = '#D2B48C';
+            bgOffset = (bgOffset - 0.5) % canvas.width;
+            for(let i = 0; i <= 2; i++) {
+                ctx.beginPath();
+                ctx.moveTo(bgOffset + (i * canvas.width), canvas.height);
+                ctx.quadraticCurveTo(bgOffset + (i * canvas.width) + canvas.width/2, canvas.height - 250, bgOffset + (i+1) * canvas.width, canvas.height);
+                ctx.fill();
+            }
+
+            // Mid Dunes (Medium)
+            ctx.fillStyle = '#C19A6B';
+            midOffset = (midOffset - 1.2) % canvas.width;
+            for(let i = 0; i <= 2; i++) {
+                ctx.beginPath();
+                ctx.moveTo(midOffset + (i * canvas.width), canvas.height);
+                ctx.quadraticCurveTo(midOffset + (i * canvas.width) + canvas.width/2, canvas.height - 150, midOffset + (i+1) * canvas.width, canvas.height);
+                ctx.fill();
+            }
+        }
+
+        function createPipe() {
+            const minH = 80;
+            const maxH = canvas.height - PIPE_GAP - minH - 120;
+            const top = Math.floor(Math.random() * (maxH - minH + 1) + minH);
+            pipes.push({ x: canvas.width, top, passed: false });
+        }
+
+        function update() {
+            if (!gameActive) return;
+
+            // Physics
+            meerkat.velocity += GRAVITY;
+            meerkat.y += meerkat.velocity;
+            meerkat.rotation = Math.min(Math.PI / 6, Math.max(-Math.PI / 8, meerkat.velocity * 0.04));
+
+            // Trail
+            if (frameCount % 3 === 0) {
+                trail.push({ x: meerkat.x + 10, y: meerkat.y + 30, opacity: 0.5 });
+            }
+            trail.forEach(t => { t.x -= PIPE_SPEED; t.opacity -= 0.015; });
+            trail = trail.filter(t => t.opacity > 0);
+
+            // Bounds
+            if (meerkat.y + meerkat.height > canvas.height - 40 || meerkat.y < -50) gameOver();
+
+            // Pipes
+            if (frameCount % PIPE_SPAWN_RATE === 0) createPipe();
+            
+            for (let i = pipes.length - 1; i >= 0; i--) {
+                const p = pipes[i];
+                p.x -= PIPE_SPEED;
+
+                // Forgiving Collision Box
+                const hitX = 12; 
+                const hitY = 10;
+                if (meerkat.x + hitX < p.x + PIPE_WIDTH && meerkat.x + meerkat.width - hitX > p.x) {
+                    if (meerkat.y + hitY < p.top || meerkat.y + meerkat.height - hitY > p.top + PIPE_GAP) {
+                        gameOver();
+                    }
+                }
+
+                if (!p.passed && p.x + PIPE_WIDTH < meerkat.x) {
+                    p.passed = true;
+                    score++;
+                    currentScoreText.innerText = score;
+                    currentScoreText.style.transform = 'scale(1.3)';
+                    setTimeout(() => currentScoreText.style.transform = 'scale(1)', 100);
+                }
+                if (p.x + PIPE_WIDTH < -50) pipes.splice(i, 1);
+            }
+
+            // Particles
+            particles.forEach((p, i) => {
+                p.x += p.vx; p.y += p.vy; p.life -= 0.02;
+                if(p.life <= 0) particles.splice(i, 1);
+            });
+
+            frameCount++;
+        }
+
+        function draw() {
+            drawBackground();
+
+            // Trail
+            trail.forEach(t => {
+                ctx.fillStyle = `rgba(255, 255, 255, ${t.opacity})`;
+                ctx.beginPath(); ctx.arc(t.x, t.y, 4, 0, Math.PI*2); ctx.fill();
+            });
+
+            // Pipes
+            pipes.forEach(p => {
+                const grad = ctx.createLinearGradient(p.x, 0, p.x + PIPE_WIDTH, 0);
+                grad.addColorStop(0, '#2d5a27');
+                grad.addColorStop(0.5, '#417d3a');
+                grad.addColorStop(1, '#1e3d1a');
+                
+                ctx.fillStyle = grad;
+                // Top
+                ctx.roundRect(p.x, -20, PIPE_WIDTH, p.top + 20, 10).fill();
+                ctx.fillStyle = '#1e3d1a';
+                ctx.fillRect(p.x - 5, p.top - 30, PIPE_WIDTH + 10, 30);
+                
+                // Bottom
+                ctx.fillStyle = grad;
+                ctx.roundRect(p.x, p.top + PIPE_GAP, PIPE_WIDTH, canvas.height - (p.top + PIPE_GAP) + 20, 10).fill();
+                ctx.fillStyle = '#1e3d1a';
+                ctx.fillRect(p.x - 5, p.top + PIPE_GAP, PIPE_WIDTH + 10, 30);
+            });
+
+            // Ground
+            ctx.fillStyle = '#8B5E3C';
+            ctx.fillRect(0, canvas.height - 40, canvas.width, 40);
+            ctx.fillStyle = '#A67C52';
+            ctx.fillRect(0, canvas.height - 40, canvas.width, 8);
+
+            // Particles
+            particles.forEach(p => {
+                ctx.globalAlpha = p.life;
+                ctx.fillStyle = p.color;
+                ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, Math.PI*2); ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+
+            drawMeerkat(ctx, meerkat.x, meerkat.y, meerkat.rotation);
+
+            if (gameActive) requestAnimationFrame(() => { update(); draw(); });
+        }
+
+        // Helper for rounded rects
+        CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+            if (w < 2 * r) r = w / 2;
+            if (h < 2 * r) r = h / 2;
+            this.beginPath();
+            this.moveTo(x + r, y);
+            this.arcTo(x + w, y, x + w, y + h, r);
+            this.arcTo(x + w, y + h, x, y + h, r);
+            this.arcTo(x, y + h, x, y, r);
+            this.arcTo(x, y, x + w, y, r);
+            this.closePath();
+            return this;
+        };
+
+        function drawStaticScene() {
+            drawBackground();
+            drawMeerkat(ctx, canvas.width/2 - 20, canvas.height/2, 0);
+        }
+
+        function startGame() {
+            gameActive = true;
+            score = 0;
+            frameCount = 0;
+            pipes = [];
+            particles = [];
+            trail = [];
+            meerkat.y = canvas.height / 2;
+            meerkat.velocity = JUMP;
+            currentScoreText.innerText = '0';
+            startScreen.classList.add('hidden');
+            gameOverScreen.classList.add('hidden');
+            scoreDisplay.classList.remove('hidden');
+            draw();
+        }
+
+        function gameOver() {
+            if (!gameActive) return;
+            gameActive = false;
+            
+            // Explosion particles
+            for(let i=0; i<15; i++) {
+                particles.push({
+                    x: meerkat.x + 20, y: meerkat.y + 27,
+                    vx: (Math.random() - 0.5) * 12, vy: (Math.random() - 0.5) * 12,
+                    life: 1.0, color: i % 2 === 0 ? '#C19A6B' : '#3D2B1F'
+                });
+            }
+
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('meerkatHighScoreDeluxe', highScore);
+            }
+            finalScoreText.innerText = score;
+            bestScoreText.innerText = highScore;
+            scoreDisplay.classList.add('hidden');
+            gameOverScreen.classList.remove('hidden');
+            draw(); // Final frame for particles
+        }
+
+        function handleAction(e) {
+            if (e.type === 'keydown' && e.code !== 'Space') return;
+            if (gameActive) {
+                meerkat.velocity = JUMP;
+            } else if (startScreen.classList.contains('hidden') && gameOverScreen.classList.contains('hidden')) {
+                // Buffer to prevent instant restart if button not clicked
+            }
+            if (e.cancelable) e.preventDefault();
+        }
+
+        window.addEventListener('keydown', handleAction);
+        window.addEventListener('touchstart', handleAction);
+        window.addEventListener('mousedown', (e) => {
+            if (e.button === 0 && gameActive) handleAction(e);
+        });
+
+        drawStaticScene();
+    </script>
+</body>
+</html>
